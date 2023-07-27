@@ -5,7 +5,7 @@ import { meApi } from "./endpoints/me";
 import { runApi } from "./endpoints/run";
 import { searchApi } from "./endpoints/search";
 import { usersApi } from "./endpoints/users";
-import { valsApi } from "@endpoints/vals";
+import { valsApi } from "./endpoints/vals";
 
 export function createApiClient(baseUrl: string, options?: ZodiosOptions) {
   return new Zodios(
