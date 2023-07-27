@@ -1,6 +1,6 @@
 // Implementing a client to learn
 
-import { makeApi, Zodios, type ZodiosOptions } from "@zodios/core";
+import { makeApi, Zodios } from "@zodios/core";
 import { z } from "zod";
 
 const ID = z.string().uuid();
@@ -68,18 +68,3 @@ const val = await client.getVal({
 const valname = await client.getValname({
   params: { username: "nbbaier", valname: "hello" },
 });
-
-const path = {
-  method: "get",
-  path: "/user/:id",
-  alias: "getUser",
-  requestFormat: "json",
-  response: User,
-  parameters: [
-    {
-      name: "id",
-      type: "Path",
-      schema: z.number(),
-    },
-  ],
-};

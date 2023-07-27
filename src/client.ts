@@ -12,9 +12,10 @@ const apiClient = createApiClient("https://api.val.town");
 
 // const user = await apiClient.getValname(params);
 
+//@ts-ignore
 const val = await apiClient.getVal({
   params: { val_id: "71f242a2-bb36-4dd2-81f1-f6df3feb1746" },
-  // headers: { Authorization: `Bearer 1afb35c0-52b3-408d-9af1-d5e199eb0552` },
+  headers: { Authorization: `Bearer 1afb35c0-52b3-408d-9af1-d5e199eb0552` },
 });
 
 console.log(val.name);
