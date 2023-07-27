@@ -26,8 +26,10 @@ const PaginatedList = z
   .partial()
   .passthrough();
 
+// TODO this should extend paginated list
 const RunList = PaginatedList;
 
+// TODO this should extend paginated list
 const ValList = PaginatedList;
 
 const ValInput = z.object({ code: z.string() }).partial().passthrough();
@@ -36,7 +38,7 @@ const BaseVal = z
   .object({
     id: z.string().uuid(),
     author: z
-      .object({ id: z.string(), username: z.string() })
+      .object({ id: z.string().uuid(), username: z.string() })
       .partial()
       .passthrough(),
     name: z.string(),
@@ -49,6 +51,7 @@ const BaseVal = z
   .partial()
   .passthrough();
 
+// TODO this should extend BaseVal list
 const FullVal = BaseVal;
 
 const BaseRun = z
@@ -59,7 +62,7 @@ const BaseRun = z
     runEndAt: z.string().datetime({ offset: true }),
     runStartAt: z.string().datetime({ offset: true }),
     author: z
-      .object({ id: z.string(), username: z.string() })
+      .object({ id: z.string().uuid(), username: z.string() })
       .partial()
       .passthrough(),
     name: z.string(),
@@ -68,6 +71,7 @@ const BaseRun = z
   .partial()
   .passthrough();
 
+// TODO this should extend BaseRun list
 const FullRun = BaseRun;
 
 const JSON = z.union([

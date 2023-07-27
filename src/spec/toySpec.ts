@@ -1,3 +1,5 @@
+// Implementing a client to learn
+
 import { makeApi, Zodios, type ZodiosOptions } from "@zodios/core";
 import { z } from "zod";
 
