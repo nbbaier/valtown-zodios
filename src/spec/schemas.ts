@@ -1,78 +1,88 @@
 import { makeApi, Zodios, type ZodiosOptions } from "@zodios/core";
 import { z } from "zod";
 
-const User = z
+const ID = z.string().uuid();
+const Datetime = z.string().datetime({ offset: true });
+const Links = z
   .object({
-    id: z.string().uuid(),
-    username: z.string(),
-    bio: z.union([z.string(), z.null()]),
-    profileImageUrl: z.union([z.string(), z.null()]),
+    self: z.string().url(),
+    next: z.string().url(),
+    prev: z.string().url(),
   })
-  .partial()
-  .passthrough();
+  .partial();
 
-const PaginatedList = z
-  .object({
-    data: z.array(z.any()),
-    links: z
-      .object({
-        self: z.string().url(),
-        next: z.string().url(),
-        prev: z.string().url(),
-      })
-      .partial()
-      .passthrough(),
-  })
-  .partial()
-  .passthrough();
+const Error = z.object({ error: z.string(), val: z.string() });
+const Log = z.array(z.string().optional());
+const Output = z.object({
+  type: z.string(),
+  value: z.string().or(z.boolean()).optional(),
+});
 
-// TODO this should extend paginated list
-const RunList = PaginatedList;
+const Email = z.object({
+  log: z.string(),
+  subject: z.string(),
+});
 
-// TODO this should extend paginated list
-const ValList = PaginatedList;
+const User = z.object({
+  id: ID,
+  username: z.string(), // this needs
+  bio: z.union([z.string(), z.null()]),
+  profileImageUrl: z.union([z.string(), z.null()]),
+});
 
-const ValInput = z.object({ code: z.string() }).partial().passthrough();
+const Author = User.omit({ bio: true, profileImageUrl: true });
 
-const BaseVal = z
-  .object({
-    id: z.string().uuid(),
-    author: z
-      .object({ id: z.string().uuid(), username: z.string() })
-      .partial()
-      .passthrough(),
-    name: z.string(),
-    code: z.string(),
-    public: z.boolean(),
-    version: z.number().int(),
-    runEndAt: z.string().datetime({ offset: true }),
-    runStartAt: z.string().datetime({ offset: true }),
-  })
-  .partial()
-  .passthrough();
+const PaginatedList = z.object({
+  data: z.array(z.any()),
+  links: Links,
+});
 
-// TODO this should extend BaseVal list
-const FullVal = BaseVal;
+const ValInput = z.object({ code: z.string() });
+
+const BaseVal = z.object({
+  id: ID,
+  author: Author,
+  name: z.string(),
+  code: z.string(),
+  public: z.boolean(),
+  version: z.number().int(),
+  runEndAt: Datetime,
+  runStartAt: Datetime,
+});
+
+const FullVal = BaseVal.extend({
+  logs: z.array(Log.optional()),
+  output: Output,
+  error: Error.nullable(),
+  readme: z.string().nullable(),
+  likeCount: z.number(),
+  referenceCount: z.number(),
+});
+
+const ValList = PaginatedList.merge(z.object({ data: z.array(BaseVal) }));
 
 const BaseRun = z
   .object({
-    id: z.string().uuid(),
-    error: z.unknown(),
-    parentId: z.string().uuid(),
-    runEndAt: z.string().datetime({ offset: true }),
-    runStartAt: z.string().datetime({ offset: true }),
-    author: z
-      .object({ id: z.string().uuid(), username: z.string() })
-      .partial()
-      .passthrough(),
+    id: ID,
+    error: Error.nullable(),
+    parentId: ID,
+    runEndAt: Datetime,
+    runStartAt: Datetime,
+    author: Author,
     name: z.string(),
     version: z.number().int(),
   })
   .partial()
   .passthrough();
 
-// TODO this should extend BaseRun list
-const FullRun = BaseRun;
+const RunList = PaginatedList.merge(z.object({ data: z.array(BaseRun) }));
+
+const FullRun = BaseRun.extend({
+  args: z.array(z.any()),
+  logs: z.array(Log.optional()),
+  emails: z.array(Email.optional()),
+  returnValue: z.any().nullable(),
+});
 
 const JSON = z.union([
   z.string(),
@@ -88,7 +98,7 @@ const postEvalBody = z
 
 const postRunValname = z.object({ args: z.array(JSON) }).partial();
 
-export const schemas = {
+export default {
   User,
   PaginatedList,
   RunList,

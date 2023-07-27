@@ -1,6 +1,6 @@
 import { makeApi, makeErrors, Zodios, type ZodiosOptions } from "@zodios/core";
 import { z } from "zod";
-import { schemas } from "./schemas";
+import schemas from "./schemas";
 
 const endpoints = makeApi([
   // get
@@ -331,7 +331,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
   {
     method: "get",
     path: "/v1/runs/:run_id",
-    alias: "getV1runsRun_id",
+    alias: "getRun",
     requestFormat: "json",
     parameters: [
       {
@@ -381,7 +381,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
   {
     method: "get",
     path: "/v1/users/:user_id",
-    alias: "getV1usersUser_id",
+    alias: "getUser",
     requestFormat: "json",
     parameters: [
       {
@@ -448,7 +448,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
   {
     method: "get",
     path: "/v1/vals/:val_id",
-    alias: "getV1valsVal_id",
+    alias: "getVal",
     requestFormat: "json",
     parameters: [
       {
@@ -514,7 +514,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
   {
     method: "post",
     path: "/v1/vals/:val_id/versions",
-    alias: "postV1valsVal_idversions",
+    alias: "postValVersion",
     requestFormat: "json",
     parameters: [
       {
@@ -529,7 +529,8 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
         schema: z.string().uuid(),
       },
     ],
-    response: schemas.FullVal,
+    response: z.array(schemas.FullVal),
+    status: 200,
     errors: [
       {
         status: 404,
