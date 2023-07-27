@@ -380,6 +380,7 @@ paths:
                   $ref: "#/components/examples/user_stevekrouse"
         "401":
           description: Unauthorized
+
   /v1/me/runs:
     get:
       summary: Get runs by the current user

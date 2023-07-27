@@ -1,9 +1,9 @@
 import { makeApi, Zodios, type ZodiosOptions } from "@zodios/core";
 import { z } from "zod";
 
-const User = z.object({ id: z.number(), username: z.string() });
-
-const Val = z.object({ id: z.number(), valname: z.string() });
+const ID = z.string().uuid();
+const User = z.object({ id: ID, username: z.string() });
+const Val = z.object({ id: ID, valname: z.string() });
 
 const api = makeApi([
   {
@@ -16,7 +16,7 @@ const api = makeApi([
       {
         name: "id",
         type: "Path",
-        schema: z.number(),
+        schema: ID,
       },
     ],
   },
@@ -30,7 +30,7 @@ const api = makeApi([
       {
         name: "id",
         type: "Path",
-        schema: z.number(),
+        schema: ID,
       },
     ],
   },
@@ -57,8 +57,27 @@ const api = makeApi([
 
 const client = new Zodios("/api", api);
 
-const user = await client.getUser({ params: { id: 1 } });
-const val = await client.getVal({ params: { id: 1 } });
+const user = await client.getUser({
+  params: { id: "e9cdeb8f-1a92-4b0d-814e-20cbda2d69a4" },
+});
+const val = await client.getVal({
+  params: { id: "013D96EC-B474-4038-B4E6-C930F87B1332" },
+});
 const valname = await client.getValname({
   params: { username: "nbbaier", valname: "hello" },
 });
+
+const path = {
+  method: "get",
+  path: "/user/:id",
+  alias: "getUser",
+  requestFormat: "json",
+  response: User,
+  parameters: [
+    {
+      name: "id",
+      type: "Path",
+      schema: z.number(),
+    },
+  ],
+};

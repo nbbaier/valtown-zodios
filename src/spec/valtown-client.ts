@@ -1,198 +1,9 @@
-import { makeApi, Zodios, type ZodiosOptions } from "@zodios/core";
+import { makeApi, makeErrors, Zodios, type ZodiosOptions } from "@zodios/core";
 import { z } from "zod";
-
-const User = z
-  .object({
-    id: z.string().uuid(),
-    username: z.string(),
-    bio: z.union([z.string(), z.null()]),
-    profileImageUrl: z.union([z.string(), z.null()]),
-  })
-  .partial()
-  .passthrough();
-
-const PaginatedList = z
-  .object({
-    data: z.array(z.any()),
-    links: z
-      .object({
-        self: z.string().url(),
-        next: z.string().url(),
-        prev: z.string().url(),
-      })
-      .partial()
-      .passthrough(),
-  })
-  .partial()
-  .passthrough();
-
-const RunList = PaginatedList;
-
-const ValList = PaginatedList;
-
-const ValInput = z.object({ code: z.string() }).partial().passthrough();
-
-const BaseVal = z
-  .object({
-    id: z.string().uuid(),
-    author: z
-      .object({ id: z.string(), username: z.string() })
-      .partial()
-      .passthrough(),
-    name: z.string(),
-    code: z.string(),
-    public: z.boolean(),
-    version: z.number().int(),
-    runEndAt: z.string().datetime({ offset: true }),
-    runStartAt: z.string().datetime({ offset: true }),
-  })
-  .partial()
-  .passthrough();
-
-const FullVal = BaseVal;
-
-const BaseRun = z
-  .object({
-    id: z.string().uuid(),
-    error: z.unknown(),
-    parentId: z.string().uuid(),
-    runEndAt: z.string().datetime({ offset: true }),
-    runStartAt: z.string().datetime({ offset: true }),
-    author: z
-      .object({ id: z.string(), username: z.string() })
-      .partial()
-      .passthrough(),
-    name: z.string(),
-    version: z.number().int(),
-  })
-  .partial()
-  .passthrough();
-
-const FullRun = BaseRun;
-
-const JSON = z.union([
-  z.string(),
-  z.number(),
-  z.object({}).partial().passthrough(),
-  z.array(z.unknown()),
-  z.boolean(),
-]);
-const postV1eval_Body = z
-  .object({ code: z.string(), args: z.array(JSON).optional() })
-  .passthrough();
-const postV1runUsername_Val_name_Body = z
-  .object({ args: z.array(JSON) })
-  .partial();
-
-export const schemas = {
-  User,
-  PaginatedList,
-  RunList,
-  ValList,
-  ValInput,
-  BaseVal,
-  FullVal,
-  BaseRun,
-  FullRun,
-  JSON,
-  postV1eval_Body,
-  postV1runUsername_Val_name_Body,
-};
+import { schemas } from "./schemas";
 
 const endpoints = makeApi([
-  {
-    method: "get",
-    path: "/",
-    alias: "get",
-    description: `Runs &#x60;@{username}.{val_name}&#x60; as an Express handler. 
-
-&#x60;@{username}.{val_name}&#x60; must be a function. It is passed the Express [&#x60;req&#x60;](https://expressjs.com/en/4x/api.html#req) and [&#x60;res&#x60;](https://expressjs.com/en/4x/api.html#res) objects as its arguments. You can use &#x60;req&#x60; to pull out request data, and &#x60;res&#x60; to respond with any valid Express response. Learn more at the [Express docs](https://expressjs.com/en/4x/api.html).
-
-Unlike the other two APIs, the Express API is specified via subdomain and runs at &#x60;https://{username}-{val_name}.express.val.run&#x60;.
-
-### Unauthenticated
-Unauthenticated use will only be able to call public vals as Express handlers.
-
-The val will be executed with &#x60;{username}&#x60;&#x27;s permissions (&quot;API Mode&quot;), so it will be able to read and write to &#x60;{username}&#x60;&#x27;s public and private vals, secrets, and use &#x60;console.email&#x60;.
-
-### Authenticated
-Authenticated use is able to call private vals as Express handlers.
-`,
-    requestFormat: "json",
-    response: z.void(),
-    errors: [
-      {
-        status: 400,
-        description: `Bad request`,
-        schema: z.void(),
-      },
-      {
-        status: 404,
-        description: `Not found`,
-        schema: z.void(),
-      },
-      {
-        status: 500,
-        description: `Internal server error`,
-        schema: z.void(),
-      },
-      {
-        status: 502,
-        description: `Error thrown executing user code`,
-        schema: z.void(),
-      },
-    ],
-  },
-  {
-    method: "post",
-    path: "/",
-    alias: "post",
-    description: `Runs &#x60;@{username}.{val_name}&#x60; as an Express handler. 
-
-&#x60;@{username}.{val_name}&#x60; must be a function. It is passed the Express [&#x60;req&#x60;](https://expressjs.com/en/4x/api.html#req) and [&#x60;res&#x60;](https://expressjs.com/en/4x/api.html#res) objects as its arguments. You can use &#x60;req&#x60; to pull out request data, and &#x60;res&#x60; to respond with any valid Express response. Learn more at the [Express docs](https://expressjs.com/en/4x/api.html).
-
-### Unauthenticated
-Unauthenticated use will only be able to call public vals as Express handlers.
-
-The val will be executed with &#x60;{username}&#x60;&#x27;s permissions (&quot;API Mode&quot;), so it will be able to read and write to &#x60;{username}&#x60;&#x27;s public and private vals, secrets, and use &#x60;console.email&#x60;.
-
-### Authenticated
-Authenticated use is able to call private vals as Express handlers.
-`,
-    requestFormat: "json",
-    parameters: [
-      {
-        name: "body",
-        description: `The request body will be accessible to the val Express handler under the first argument, commonly called &#x60;req&#x60;, as &#x60;req.body&#x60;.
-`,
-        type: "Body",
-        schema: JSON.optional(),
-      },
-    ],
-    response: z.void(),
-    errors: [
-      {
-        status: 400,
-        description: `Bad request`,
-        schema: z.void(),
-      },
-      {
-        status: 404,
-        description: `Not found`,
-        schema: z.void(),
-      },
-      {
-        status: 500,
-        description: `Internal server error`,
-        schema: z.void(),
-      },
-      {
-        status: 502,
-        description: `Error thrown executing user code`,
-        schema: z.void(),
-      },
-    ],
-  },
+  // get
   {
     method: "get",
     path: "/v1/alias/:username",
@@ -205,7 +16,7 @@ Authenticated use is able to call private vals as Express handlers.
         schema: z.string(),
       },
     ],
-    response: User,
+    response: schemas.User,
     errors: [
       {
         status: 404,
@@ -217,7 +28,7 @@ Authenticated use is able to call private vals as Express handlers.
   {
     method: "get",
     path: "/v1/alias/:username/:val_name",
-    alias: "getValByName",
+    alias: "getValname",
     requestFormat: "json",
     parameters: [
       {
@@ -231,7 +42,7 @@ Authenticated use is able to call private vals as Express handlers.
         schema: z.string(),
       },
     ],
-    response: FullVal,
+    response: schemas.FullVal,
     errors: [
       {
         status: 404,
@@ -243,11 +54,11 @@ Authenticated use is able to call private vals as Express handlers.
   {
     method: "post",
     path: "/v1/eval",
-    alias: "postV1eval",
-    description: `Evaluates the JavaScript or TypeScript &#x60;{expression}&#x60; and responds with the returned result. 
+    alias: "postEval",
+    description: `Evaluates the JavaScript or TypeScript {expression} and responds with the returned result.
 
 ### Unauthenticated
-Unauthenticated use will have read-only access to public vals. 
+Unauthenticated use will have read-only access to public vals.
 
 ### Authenticated
 Authenticated use will have read access to the authenticated user&#x27;s private vals and secrets, write access to the authenticated user&#x27;s vals, and the ability to send the authenticated user emails via &#x60;console.email&#x60;.
@@ -260,7 +71,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
         name: "body",
         description: `When used as a POST endpoint, the request body must contain the code to be run.`,
         type: "Body",
-        schema: postV1eval_Body,
+        schema: schemas.postEvalBody,
       },
     ],
     response: z.union([
@@ -296,11 +107,11 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
   {
     method: "get",
     path: "/v1/eval/:expression",
-    alias: "getEval",
-    description: `Evaluates the JavaScript or TypeScript &#x60;{expression}&#x60; and responds with the returned result. 
+    alias: "getV1evalExpression",
+    description: `Evaluates the JavaScript or TypeScript &#x60;{expression}&#x60; and responds with the returned result.
 
 ### Unauthenticated
-Unauthenticated use will have read-only access to public vals. 
+Unauthenticated use will have read-only access to public vals.
 
 ### Authenticated
 Authenticated use will have read access to the authenticated user&#x27;s private vals and secrets, write access to the authenticated user&#x27;s vals, and the ability to send the authenticated user emails via &#x60;console.email&#x60;.
@@ -348,9 +159,9 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
   {
     method: "get",
     path: "/v1/me",
-    alias: "getMe",
+    alias: "getV1me",
     requestFormat: "json",
-    response: User,
+    response: schemas.User,
     errors: [
       {
         status: 401,
@@ -362,7 +173,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
   {
     method: "get",
     path: "/v1/me/likes",
-    alias: "getLikes",
+    alias: "getV1melikes",
     requestFormat: "json",
     parameters: [
       {
@@ -376,7 +187,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
         schema: z.number().int().gte(1).lte(100).optional().default(20),
       },
     ],
-    response: ValList,
+    response: schemas.ValList,
     errors: [
       {
         status: 401,
@@ -388,7 +199,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
   {
     method: "get",
     path: "/v1/me/runs",
-    alias: "getMeRuns",
+    alias: "getV1meruns",
     requestFormat: "json",
     parameters: [
       {
@@ -402,7 +213,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
         schema: z.number().int().gte(1).lte(100).optional().default(20),
       },
     ],
-    response: RunList,
+    response: schemas.RunList,
     errors: [
       {
         status: 401,
@@ -414,7 +225,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
   {
     method: "get",
     path: "/v1/run/:username.:val_name",
-    alias: "getRun",
+    alias: "getV1runUsername_Val_name",
     description: `This endpoint runs the specified user&#x27;s val and returns the output.`,
     requestFormat: "json",
     parameters: [
@@ -467,14 +278,14 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
   {
     method: "post",
     path: "/v1/run/:username.:val_name",
-    alias: "postV1runUsername_Val_name",
+    alias: "postRunValname",
     requestFormat: "json",
     parameters: [
       {
         name: "body",
         description: `Provide arguments to the given val function by including a post body with your request.`,
         type: "Body",
-        schema: postV1runUsername_Val_name_Body.optional(),
+        schema: schemas.postRunValname.optional(),
       },
       {
         name: "username",
@@ -520,7 +331,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
   {
     method: "get",
     path: "/v1/runs/:run_id",
-    alias: "getRunId",
+    alias: "getV1runsRun_id",
     requestFormat: "json",
     parameters: [
       {
@@ -529,7 +340,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
         schema: z.string().uuid(),
       },
     ],
-    response: FullRun,
+    response: schemas.FullRun,
     errors: [
       {
         status: 401,
@@ -565,12 +376,12 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
         schema: z.number().int().gte(1).lte(100).optional().default(20),
       },
     ],
-    response: ValList,
+    response: schemas.ValList,
   },
   {
     method: "get",
     path: "/v1/users/:user_id",
-    alias: "getUser",
+    alias: "getV1usersUser_id",
     requestFormat: "json",
     parameters: [
       {
@@ -579,7 +390,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
         schema: z.string().uuid(),
       },
     ],
-    response: User,
+    response: schemas.User,
     errors: [
       {
         status: 404,
@@ -591,7 +402,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
   {
     method: "get",
     path: "/v1/users/:user_id/vals",
-    alias: "getVals",
+    alias: "getV1usersUser_idvals",
     requestFormat: "json",
     parameters: [
       {
@@ -610,7 +421,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
         schema: z.number().int().gte(1).lte(100).optional().default(20),
       },
     ],
-    response: ValList,
+    response: schemas.ValList,
   },
   {
     method: "post",
@@ -625,7 +436,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
         schema: z.object({ code: z.string() }).partial().passthrough(),
       },
     ],
-    response: FullVal,
+    response: schemas.FullVal,
     errors: [
       {
         status: 401,
@@ -637,7 +448,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
   {
     method: "get",
     path: "/v1/vals/:val_id",
-    alias: "getVal",
+    alias: "getV1valsVal_id",
     requestFormat: "json",
     parameters: [
       {
@@ -646,7 +457,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
         schema: z.string().uuid(),
       },
     ],
-    response: FullVal,
+    response: schemas.FullVal,
     errors: [
       {
         status: 404,
@@ -672,7 +483,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
   {
     method: "get",
     path: "/v1/vals/:val_id/runs",
-    alias: "getValRuns",
+    alias: "getV1valsVal_idruns",
     requestFormat: "json",
     parameters: [
       {
@@ -691,7 +502,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
         schema: z.number().int().gte(1).lte(100).optional().default(20),
       },
     ],
-    response: RunList,
+    response: schemas.RunList,
     errors: [
       {
         status: 401,
@@ -718,7 +529,7 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
         schema: z.string().uuid(),
       },
     ],
-    response: FullVal,
+    response: schemas.FullVal,
     errors: [
       {
         status: 404,
@@ -747,7 +558,8 @@ Vals generated via this API will *not* appear in the authenticated user&#x27;s w
     response: z.void(),
   },
 ]);
-export const api = new Zodios(endpoints);
+
+export const api = new Zodios("https://api.val.town", endpoints);
 
 export function createApiClient(baseUrl: string, options?: ZodiosOptions) {
   return new Zodios(baseUrl, endpoints, options);
