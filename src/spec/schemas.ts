@@ -61,19 +61,16 @@ const FullVal = BaseVal.extend({
 
 const ValList = PaginatedList.merge(z.object({ data: z.array(BaseVal) }));
 
-const BaseRun = z
-  .object({
-    id: ID,
-    error: Error.nullable(),
-    parentId: ID,
-    runEndAt: Datetime,
-    runStartAt: Datetime,
-    author: Author,
-    name: z.string(),
-    version: z.number().int(),
-  })
-  .partial()
-  .passthrough();
+const BaseRun = z.object({
+  id: ID,
+  error: Error.nullable(),
+  parentId: ID,
+  runEndAt: Datetime,
+  runStartAt: Datetime,
+  author: Author,
+  name: z.string(),
+  version: z.number().int(),
+});
 
 const RunList = PaginatedList.merge(z.object({ data: z.array(BaseRun) }));
 
